@@ -29,7 +29,8 @@ expired_message = u"""
 This link points to an ebook that is no longer free (current price: %s), and
 consequently has been marked as expired.
 
-I am a bot. If I have made a mistake, please [message the moderators](http://www.reddit.com/message/compose?to=/r/FreeEBOOKS&subject=expired_link_bot&message=%s).
+I am a bot. If I have made a mistake, please [message the
+moderators](http://www.reddit.com/message/compose?to=/r/FreeEBOOKS&subject=expired_link_bot&message=%s).
 """
 
 def GetPriceSelector(url):
