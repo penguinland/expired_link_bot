@@ -22,6 +22,9 @@ import urllib2
 
 expired_flair = "Expired"  # Flair on /r/FreeEbooks
 
+# Note that this is a template. You need to supply the current price of the
+# book and the permalink to the Reddit submission for this comment to make
+# sense to readers.
 expired_message = u"""
 This link points to an ebook that is no longer free (current price: %s), and
 consequently has been marked as expired.
@@ -42,6 +45,10 @@ def GetPriceSelector(url):
   return ""
 
 def CheckSubmissions(subreddit):
+  """
+  Given a subreddit, marks expired links and returns a list of the submissions
+  that were marked.
+  """
   modified_submissions = []
 
   for submission in subreddit.get_hot(limit=200):
@@ -80,6 +87,10 @@ def CheckSubmissions(subreddit):
   return modified_submissions
 
 def SendDigest(modified_submissions, r):
+  """
+  Given a list of modified submissions and a reddit object that can send
+  modmail, sends a summary of the modified submissions to the moderators.
+  """
   formatted_submissions = [
       "[%s](%s) (%s)" % (sub.title, sub.permalink, sub.list_price)
       for sub in modified_submissions]
@@ -103,4 +114,5 @@ def Main():
   if len(modified_submissions) > 0:
     SendDigest(modified_submissions, r)
 
-Main()
+if __name__ == "__main__":
+  Main()
