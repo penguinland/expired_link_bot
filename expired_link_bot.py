@@ -21,6 +21,7 @@ import time
 import urllib2
 
 expired_flair = "Expired"  # Flair on /r/FreeEbooks
+expired_css_class = "closed"
 
 # Note that this is a template. You need to supply the current price of the
 # book and the permalink to the Reddit submission for this comment to make
@@ -54,7 +55,7 @@ def CheckSubmissions(subreddit):
 
   for submission in subreddit.get_hot(limit=200):
     # Skip anything already marked as expired.
-    if submission.link_flair_text == expired_flair:
+    if submission.link_flair_css_class == expired_css_class:
       continue
 
     price_selector = GetPriceSelector(submission.url)
@@ -82,7 +83,7 @@ def CheckSubmissions(subreddit):
     # If we get here, this submission is no longer free. Make a comment
     # explaining this, then set the flair to expired.
     submission.add_comment(expired_message % (price, submission.permalink))
-    subreddit.set_flair(submission, expired_flair)
+    subreddit.set_flair(submission, expired_flair, expired_css_class)
     submission.list_price = price  # Store this to put in the digest later.
     modified_submissions.append(submission)
   return modified_submissions
@@ -108,7 +109,7 @@ def Main():
   # gets run!
   r.login("expired_link_bot", "password goes here!")  # username, password
 
-  subreddit = r.get_subreddit('freeebooks')
+  subreddit = r.get_subreddit("freeebooks")
   modified_submissions = CheckSubmissions(subreddit)
 
   if len(modified_submissions) > 0:
