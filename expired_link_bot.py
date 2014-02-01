@@ -109,8 +109,8 @@ def Main():
   r.login("expired_link_bot", "password goes here!")  # username, password
 
   subreddit = r.get_subreddit('freeebooks')
-
   modified_submissions = CheckSubmissions(subreddit)
+
   if len(modified_submissions) > 0:
     digest = MakeDigest(modified_submissions)
     r.send_message("/r/FreeEbooks", "Bot Digest", digest)
