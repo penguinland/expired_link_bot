@@ -109,7 +109,6 @@ def Main():
   r.login("expired_link_bot", "password goes here!")  # username, password
 
   subreddit = r.get_subreddit('freeebooks')
-  #subreddit = r.get_subreddit('chtorrr')
 
   modified_submissions = CheckSubmissions(subreddit)
   if len(modified_submissions) > 0:
