@@ -89,8 +89,8 @@ def CheckSubmissions(subreddit):
 
 def MakeDigest(modified_submissions):
   """
-  Given a list of modified submissions and a reddit object that can send
-  modmail, sends a summary of the modified submissions to the moderators.
+  Given a list of modified submissions, returns a string containing a summary
+  of the modified submissions, intended to be sent to the moderators.
   """
   formatted_submissions = [
       "[%s](%s) (%s)" % (sub.title, sub.permalink, sub.list_price)
