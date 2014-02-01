@@ -87,7 +87,7 @@ def CheckSubmissions(subreddit):
     modified_submissions.append(submission)
   return modified_submissions
 
-def SendDigest(modified_submissions, r):
+def MakeDigest(modified_submissions):
   """
   Given a list of modified submissions and a reddit object that can send
   modmail, sends a summary of the modified submissions to the moderators.
@@ -97,7 +97,7 @@ def SendDigest(modified_submissions, r):
       for sub in modified_submissions]
   digest = ("Marked %d submission(s) as expired:\n\n%s" %
             (len(formatted_submissions), "\n\n".join(formatted_submissions)))
-  r.send_message("/r/FreeEbooks", "Bot Digest", digest)
+  return digest
 
 def Main():
   # useragent string
@@ -112,7 +112,8 @@ def Main():
 
   modified_submissions = CheckSubmissions(subreddit)
   if len(modified_submissions) > 0:
-    SendDigest(modified_submissions, r)
+    digest = MakeDigest(modified_submissions)
+    r.send_message("/r/FreeEbooks", "Bot Digest", digest)
 
 if __name__ == "__main__":
   Main()
