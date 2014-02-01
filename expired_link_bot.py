@@ -41,8 +41,19 @@ def GetPriceSelector(url):
   have the price in its first group. If we don't know how to find the price on
   this URL, return the empty string.
   """
-  if url[:22] == "http://www.amazon.com/":
+  if (url[:22] == "http://www.amazon.com/" or
+      # Note that amazon.co.uk doesn't work yet because it's using a
+      # non-UTF8 encoding for the pound symbol (possibly Latin-1 extended
+      # ASCII?), and that's messing up the string formatting in
+      # comments/messages. I need to figure out how to detect and deal with
+      # this format.
+      #url[:24] == "http://www.amazon.co.uk/" or
+      url[:21] == "http://www.amazon.ca/"):
     return r'\s+class="priceLarge"\s*>([^<]*)<'
+  if url[:27] == "https://www.smashwords.com/":
+    return r'class="panel-title text-center">\s*Price:([^<]*)<'
+  if url[:30] == "http://www.barnesandnoble.com/":
+    return r'itemprop="price" data-bntrack="Price" data-bntrack-event="click">([^<]*)<'
   # Add other matches here
   return ""
 
@@ -68,8 +79,8 @@ def CheckSubmissions(subreddit):
       time.sleep(1)
 
       # Get the contents of the webpage about this ebook.
-      response = urllib2.urlopen(submission.url)
-      price = re.search(price_selector, response.read()).group(1).strip()
+      html = urllib2.urlopen(submission.url).read()
+      price = re.search(price_selector, html).group(1).strip()
     except:
       print "Unable to download/parse URL:"
       print submission.url
@@ -94,20 +105,20 @@ def MakeDigest(modified_submissions):
   of the modified submissions, intended to be sent to the moderators.
   """
   formatted_submissions = [
-      "[%s](%s) (%s)" % (sub.title, sub.permalink, sub.list_price)
+      u"[%s](%s) (%s)" % (sub.title, sub.permalink, sub.list_price)
       for sub in modified_submissions]
-  digest = ("Marked %d submission(s) as expired:\n\n%s" %
-            (len(formatted_submissions), "\n\n".join(formatted_submissions)))
+  digest = (u"Marked %d submission(s) as expired:\n\n%s" %
+            (len(formatted_submissions), u"\n\n".join(formatted_submissions)))
   return digest
 
 def Main():
   # useragent string
   r = praw.Reddit("/r/FreeEbooks expired-link-marking bot "
-                  "by /u/penguinland v. 1.0")
+                  "by /u/penguinland v. 1.1")
 
   # Remember to use the actual password when updating the version that actually
   # gets run!
-  r.login("expired_link_bot", "password goes here!")  # username, password
+  r.login("expired_link_bot", "password goes here")  # username, password
 
   subreddit = r.get_subreddit("freeebooks")
   modified_submissions = CheckSubmissions(subreddit)
