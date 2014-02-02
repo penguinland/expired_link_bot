@@ -13,6 +13,8 @@ To install praw without root,
 - Remember to export PYTHONPATH from your .zshrc as well!
 - Run the command again, and it should succeed this time:
     easy_install --prefix=~/local praw
+- If you run this bot as a cron job, remember to set the PYTHONPATH up
+  correctly in your crontab as well!
 """
 
 import praw
