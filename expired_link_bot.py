@@ -46,6 +46,7 @@ def GetPriceSelector(url):
   this URL, return the empty string.
   """
   if (url.startswith("http://www.amazon.com/") or
+      url.startswith("http://amzn.com/") or
       # Note that amazon.co.uk doesn't work yet because it's using a
       # non-UTF8 encoding for the pound symbol (possibly Latin-1 extended
       # ASCII?), and that's messing up the string formatting in
