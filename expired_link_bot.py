@@ -59,6 +59,31 @@ def GetPriceSelector(url):
   # Add other matches here
   return ""
 
+def GetPrice(url):
+  """
+  Given a string containing a URL of an ebook, return a string containing its
+  current price. If we do not know how to get the price, or if we're unable to
+  get the price, return the empty string.
+  """
+
+  price_selector = GetPriceSelector(url)
+  if not price_selector:
+    # The url is on a website where we don't know how to find the price
+    return ""
+
+  try:
+    # We sleep here to ensure that we send websites at most 1 qps.
+    time.sleep(1)
+
+    # Get the contents of the webpage about this ebook.
+    html = urllib2.urlopen(url).read()
+    price = re.search(price_selector, html).group(1).strip()
+    return price
+  except:
+    print "Unable to download/parse URL:"
+    print url
+    return ""
+
 def CheckSubmissions(subreddit):
   """
   Given a subreddit, marks expired links and returns a list of the submissions
@@ -71,30 +96,15 @@ def CheckSubmissions(subreddit):
     if submission.link_flair_css_class == expired_css_class:
       continue
 
-    price_selector = GetPriceSelector(submission.url)
-    if not price_selector:
-      # Submission is a website where we don't know how to find the price
-      continue
-
-    try:
-      # We sleep here to ensure that we send websites at most 1 qps.
-      time.sleep(1)
-
-      # Get the contents of the webpage about this ebook.
-      html = urllib2.urlopen(submission.url).read()
-      price = re.search(price_selector, html).group(1).strip()
-    except:
-      print "Unable to download/parse URL:"
-      print submission.url
-      continue
-
+    # The price might be the empty string if we're unable to get the real price.
+    price = GetPrice(submission.url)
     # This next line is a little hard for non-Python people to read. It's
     # asking whether any nonzero digit is contained in the price.
     if not any(digit in price for digit in "123456789"):
-      continue  # It's still free!
+      continue  # Either we're unable to get the price, or it's still free
 
     # If we get here, this submission is no longer free. Make a comment
-    # explaining this, then set the flair to expired.
+    # explaining this and set the flair to expired.
     submission.add_comment(expired_message % (price, submission.permalink))
     subreddit.set_flair(submission, expired_flair, expired_css_class)
     submission.list_price = price  # Store this to put in the digest later.
