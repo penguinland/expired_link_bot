@@ -47,12 +47,7 @@ def GetPriceSelector(url):
   """
   if (url.startswith("http://www.amazon.com/") or
       url.startswith("http://amzn.com/") or
-      # Note that amazon.co.uk doesn't work yet because it's using a
-      # non-UTF8 encoding for the pound symbol (possibly Latin-1 extended
-      # ASCII?), and that's messing up the string formatting in
-      # comments/messages. I need to figure out how to detect and deal with
-      # this format.
-      #url.startswith("http://www.amazon.co.uk/") or
+      url.startswith("http://www.amazon.co.uk/") or
       url.startswith("http://www.amazon.ca/")):
     return r'\s+class="priceLarge"\s*>([^<]*)<'
   if url.startswith("https://www.smashwords.com/"):
@@ -79,7 +74,11 @@ def GetPrice(url):
     time.sleep(1)
 
     # Get the contents of the webpage about this ebook.
-    html = urllib2.urlopen(url).read()
+    request = urllib2.urlopen(url)
+    html = request.read()
+    encoding = request.info().typeheader
+    if encoding.endswith("-8859-1"):  # Extended ASCII, rather than UTF-8
+      html = html.decode("latin1")
     price = re.search(price_selector, html).group(1).strip()
     return price
   except:
@@ -95,8 +94,8 @@ def CheckSubmissions(subreddit):
   modified_submissions = []
 
   for submission in subreddit.get_hot(limit=200):
-    # Skip anything already marked as expired.
-    if submission.link_flair_css_class == expired_css_class:
+    # Skip anything already marked as expired, unless it's test data.
+    if submission.link_flair_css_class == expired_css_class and not TESTING:
       continue
 
     # The price might be the empty string if we're unable to get the real price.
