@@ -43,18 +43,18 @@ def GetPriceSelector(url):
   have the price in its first group. If we don't know how to find the price on
   this URL, return the empty string.
   """
-  if (url[:22] == "http://www.amazon.com/" or
+  if (url.startswith("http://www.amazon.com/") or
       # Note that amazon.co.uk doesn't work yet because it's using a
       # non-UTF8 encoding for the pound symbol (possibly Latin-1 extended
       # ASCII?), and that's messing up the string formatting in
       # comments/messages. I need to figure out how to detect and deal with
       # this format.
-      #url[:24] == "http://www.amazon.co.uk/" or
-      url[:21] == "http://www.amazon.ca/"):
+      #url.startswith("http://www.amazon.co.uk/") or
+      url.startswith("http://www.amazon.ca/")):
     return r'\s+class="priceLarge"\s*>([^<]*)<'
-  if url[:27] == "https://www.smashwords.com/":
+  if url.startswith("https://www.smashwords.com/"):
     return r'class="panel-title text-center">\s*Price:([^<]*)<'
-  if url[:30] == "http://www.barnesandnoble.com/":
+  if url.startswith("http://www.barnesandnoble.com/"):
     return r'itemprop="price" data-bntrack="Price" data-bntrack-event="click">([^<]*)<'
   # Add other matches here
   return ""
