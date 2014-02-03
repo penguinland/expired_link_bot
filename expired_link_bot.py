@@ -22,6 +22,8 @@ import re
 import time
 import urllib2
 
+TESTING = True  # Set to false for the real version.
+
 expired_flair = "Expired"  # Flair on /r/FreeEbooks
 expired_css_class = "closed"
 
@@ -105,8 +107,9 @@ def CheckSubmissions(subreddit):
 
     # If we get here, this submission is no longer free. Make a comment
     # explaining this and set the flair to expired.
-    submission.add_comment(expired_message % (price, submission.permalink))
-    subreddit.set_flair(submission, expired_flair, expired_css_class)
+    if not TESTING:
+      submission.add_comment(expired_message % (price, submission.permalink))
+      subreddit.set_flair(submission, expired_flair, expired_css_class)
     submission.list_price = price  # Store this to put in the digest later.
     modified_submissions.append(submission)
   return modified_submissions
@@ -132,12 +135,19 @@ def Main():
   # gets run!
   r.login("expired_link_bot", "password goes here")  # username, password
 
-  subreddit = r.get_subreddit("freeebooks")
+  if TESTING:
+    subreddit = r.get_subreddit("chtorrr")  # Testing data is in /r/chtorrr
+  else:
+    subreddit = r.get_subreddit("freeebooks")  # Real data is in /r/FreeEbooks
   modified_submissions = CheckSubmissions(subreddit)
 
   if len(modified_submissions) > 0:
     digest = MakeDigest(modified_submissions)
-    r.send_message("/r/FreeEbooks", "Bot Digest", digest)
+    if TESTING:
+      recipient = "penguinland"  # Send test digests only to me.
+    else:
+      recipient = "/r/FreeEbooks"  # Send the real digest to the mods
+    r.send_message(recipient, "Bot Digest", digest)
 
 if __name__ == "__main__":
   Main()
