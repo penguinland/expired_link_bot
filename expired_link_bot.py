@@ -92,9 +92,10 @@ def GetPrice(url):
     # can handle automatically, but which urllib2 doesn't know about).
     request = urllib2.urlopen(httplib2.iri2uri(url))
     html = request.read()
+    # Remember to convert to unicode if the website uses some other encoding.
     encoding = request.info().typeheader
-    if encoding.endswith("-8859-1"):  # Extended ASCII, rather than UTF-8
-      html = html.decode("latin1")
+    encoding = encoding.split("charset=")[-1]
+    html = html.decode("latin1")
     price = re.search(price_selector, html).group(1).strip()
     return price
   except:
