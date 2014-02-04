@@ -95,7 +95,7 @@ def GetPrice(url):
     # Remember to convert to unicode if the website uses some other encoding.
     encoding = request.info().typeheader
     encoding = encoding.split("charset=")[-1]
-    html = html.decode("latin1")
+    html = html.decode(encoding)
     price = re.search(price_selector, html).group(1).strip()
     return price
   except:
