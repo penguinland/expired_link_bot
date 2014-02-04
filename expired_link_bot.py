@@ -51,11 +51,11 @@ def GetPriceSelector(url):
   have the price in its first group. If we don't know how to find the price on
   this URL, return the empty string.
   """
-  if (url.startswith("http://www.amazon.com/") or
-      url.startswith("http://amzn.com/") or
-      url.startswith("http://www.amazon.co.uk/") or
-      url.startswith("https://www.amazon.co.uk/") or
-      url.startswith("http://www.amazon.ca/")):
+  if url.startswith(("http://www.amazon.com/",
+                     "http://amzn.com/",
+                     "http://www.amazon.co.uk/",
+                     "https://www.amazon.co.uk/",
+                     "http://www.amazon.ca/")):
     return r'\s+class="priceLarge"\s*>([^<]*)<'
   if url.startswith("https://www.smashwords.com/"):
     return r'class="panel-title text-center">\s*Price:([^<]*)<'
@@ -107,13 +107,13 @@ def IsKnownFree(url):
   Given a string containing a URL, return whether we know this site only hosts
   permanently free ebooks.
   """
-  return (url.startswith("http://ebooks.adelaide.edu.au/") or
-          url.startswith("http://www.gutenberg.org/") or
-          url.startswith("http://www.topfreebooks.org/") or
-          # Feedbooks puts their paid content in feedbooks.com/item/
-          url.startswith("http://www.feedbooks.com/book/") or
-          url.startswith("http://www.feedbooks.com/userbook/") or
-          url.startswith("https://openlibrary.org/"))
+  return url.startswith(("http://ebooks.adelaide.edu.au/",
+                         "http://www.gutenberg.org/",
+                         "http://www.topfreebooks.org/",
+                         # Feedbooks' paid content is in feedbooks.com/item/
+                         "http://www.feedbooks.com/book/",
+                         "http://www.feedbooks.com/userbook/",
+                         "https://openlibrary.org/"))
 
 def CheckSubmissions(subreddit):
   """
