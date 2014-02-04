@@ -13,10 +13,13 @@ To install praw without root,
 - Remember to export PYTHONPATH from your .zshrc as well!
 - Run the command again, and it should succeed this time:
     easy_install --prefix=~/local praw
+- You'll also need to install httplib2:
+    easy_install --prefix=~/local httplib2
 - If you run this bot as a cron job, remember to set the PYTHONPATH up
   correctly in your crontab as well!
 """
 
+import httplib2
 import praw
 import re
 import time
@@ -84,8 +87,10 @@ def GetPrice(url):
     # We sleep here to ensure that we send websites at most 1 qps.
     time.sleep(1)
 
-    # Get the contents of the webpage about this ebook.
-    request = urllib2.urlopen(url)
+    # Get the contents of the webpage about this ebook. We use iri2uri to encode
+    # any stray unicode characters that might be in the URL (which web browsers
+    # can handle automatically, but which urllib2 doesn't know about).
+    request = urllib2.urlopen(httplib2.iri2uri(url))
     html = request.read()
     encoding = request.info().typeheader
     if encoding.endswith("-8859-1"):  # Extended ASCII, rather than UTF-8
