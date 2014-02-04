@@ -54,6 +54,13 @@ def GetPriceSelector(url):
     return r'class="panel-title text-center">\s*Price:([^<]*)<'
   if url.startswith("http://www.barnesandnoble.com/"):
     return r'itemprop="price" data-bntrack="Price" data-bntrack-event="click">([^<]*)<'
+  # Although Google Play links work fine from my home computer, this webserver
+  # only gets 403 (Forbidden) replies from Google. Presumably there have been
+  # other scrapers on this server doing mean things in the past, so Google has
+  # blocked all of them. If this bot gets migrated to a different server, try
+  # uncommenting these lines.
+  #if url.startswith("https://play.google.com/"):
+  #  return r'<meta content="([^"]*)" itemprop="price">'
   # Add other matches here
   return ""
 
