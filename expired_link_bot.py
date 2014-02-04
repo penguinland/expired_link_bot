@@ -96,9 +96,12 @@ def GetPrice(url):
 def CheckSubmissions(subreddit):
   """
   Given a subreddit, marks expired links and returns a list of the submissions
-  that were marked.
+  that were marked. It also returns a list of submissions we were unable to
+  process (either because we don't know how to find the price or because we
+  were unable to get the price).
   """
   modified_submissions = []
+  unknown_submissions = []
 
   for submission in subreddit.get_hot(limit=200):
     # Skip anything already marked as expired, unless it's test data.
@@ -107,10 +110,13 @@ def CheckSubmissions(subreddit):
 
     # The price might be the empty string if we're unable to get the real price.
     price = GetPrice(submission.url)
+    if not price:  # Couldn't get the price; requires human review
+      unknown_submissions.append(submission)
+      continue
     # This next line is a little hard for non-Python people to read. It's
     # asking whether any nonzero digit is contained in the price.
     if not any(digit in price for digit in "123456789"):
-      continue  # Either we're unable to get the price, or it's still free
+      continue  # It's still free!
 
     # If we get here, this submission is no longer free. Make a comment
     # explaining this and set the flair to expired.
@@ -119,9 +125,9 @@ def CheckSubmissions(subreddit):
       subreddit.set_flair(submission, expired_flair, expired_css_class)
     submission.list_price = price  # Store this to put in the digest later.
     modified_submissions.append(submission)
-  return modified_submissions
+  return modified_submissions, unknown_submissions
 
-def MakeDigest(modified_submissions):
+def MakeModifiedDigest(modified_submissions):
   """
   Given a list of modified submissions, returns a string containing a summary
   of the modified submissions, intended to be sent to the moderators.
@@ -130,6 +136,20 @@ def MakeDigest(modified_submissions):
       u"[%s](%s) (%s)" % (sub.title, sub.permalink, sub.list_price)
       for sub in modified_submissions]
   digest = (u"Marked %d submission(s) as expired:\n\n%s" %
+            (len(formatted_submissions), u"\n\n".join(formatted_submissions)))
+  return digest
+
+def MakeUnknownDigest(unknown_submissions):
+  """
+  Given a list of submissions the bot couldn't process, returns a string
+  containing a summary of these submissions, intended to be sent to the
+  moderators.
+  """
+  formatted_submissions = [
+      u"[%s](%s) ([direct link](%s))" %
+      (sub.title, sub.permalink, sub.url)
+      for sub in unknown_submissions]
+  digest = (u"Couldn't deal with %d submission(s):\n\n%s" %
             (len(formatted_submissions), u"\n\n".join(formatted_submissions)))
   return digest
 
@@ -146,15 +166,23 @@ def Main():
     subreddit = r.get_subreddit("chtorrr")  # Testing data is in /r/chtorrr
   else:
     subreddit = r.get_subreddit("freeebooks")  # Real data is in /r/FreeEbooks
-  modified_submissions = CheckSubmissions(subreddit)
+  modified_submissions, unknown_submissions = CheckSubmissions(subreddit)
+
+  if len(unknown_submissions) > 0:
+    unknown_digest = MakeUnknownDigest(unknown_submissions)
+    # At the moment, there are too many unknown submissions to be sent in a PM.
+    # Once I add a whitelist of websites to ignore because their contents are
+    # always free (example: Project Gutenberg), this might become more
+    # feasible.
+    #r.send_message("penguinland", "Requires human review", unknown_digest)
 
   if len(modified_submissions) > 0:
-    digest = MakeDigest(modified_submissions)
+    modified_digest = MakeModifiedDigest(modified_submissions)
     if TESTING:
       recipient = "penguinland"  # Send test digests only to me.
     else:
       recipient = "/r/FreeEbooks"  # Send the real digest to the mods
-    r.send_message(recipient, "Bot Digest", digest)
+    r.send_message(recipient, "Bot Digest", modified_digest)
 
 if __name__ == "__main__":
   Main()
