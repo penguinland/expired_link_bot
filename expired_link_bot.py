@@ -24,6 +24,9 @@ import urllib2
 
 TESTING = True  # Set to false for the real version.
 
+username = "expired_link_bot"
+password = ""  # Remember to put in the password when actually using this!
+
 expired_flair = "Expired"  # Flair on /r/FreeEbooks
 expired_css_class = "closed"
 
@@ -48,6 +51,7 @@ def GetPriceSelector(url):
   if (url.startswith("http://www.amazon.com/") or
       url.startswith("http://amzn.com/") or
       url.startswith("http://www.amazon.co.uk/") or
+      url.startswith("https://www.amazon.co.uk/") or
       url.startswith("http://www.amazon.ca/")):
     return r'\s+class="priceLarge"\s*>([^<]*)<'
   if url.startswith("https://www.smashwords.com/"):
@@ -93,6 +97,19 @@ def GetPrice(url):
     print url
     return ""
 
+def IsKnownFree(url):
+  """
+  Given a string containing a URL, return whether we know this site only hosts
+  permanently free ebooks.
+  """
+  return (url.startswith("http://ebooks.adelaide.edu.au/") or
+          url.startswith("http://www.gutenberg.org/") or
+          url.startswith("http://www.topfreebooks.org/") or
+          # Feedbooks puts their paid content in feedbooks.com/item/
+          url.startswith("http://www.feedbooks.com/book/") or
+          url.startswith("http://www.feedbooks.com/userbook/") or
+          url.startswith("https://openlibrary.org/"))
+
 def CheckSubmissions(subreddit):
   """
   Given a subreddit, marks expired links and returns a list of the submissions
@@ -110,8 +127,9 @@ def CheckSubmissions(subreddit):
 
     # The price might be the empty string if we're unable to get the real price.
     price = GetPrice(submission.url)
-    if not price:  # Couldn't get the price; requires human review
-      unknown_submissions.append(submission)
+    if not price:
+      if not IsKnownFree(submission.url):  # Requires human review
+        unknown_submissions.append(submission)
       continue
     # This next line is a little hard for non-Python people to read. It's
     # asking whether any nonzero digit is contained in the price.
@@ -156,25 +174,14 @@ def MakeUnknownDigest(unknown_submissions):
 def Main():
   # useragent string
   r = praw.Reddit("/r/FreeEbooks expired-link-marking bot "
-                  "by /u/penguinland v. 1.1")
-
-  # Remember to use the actual password when updating the version that actually
-  # gets run!
-  r.login("expired_link_bot", "password goes here")  # username, password
+                  "by /u/penguinland v. 1.2")
+  r.login(username, password)
 
   if TESTING:
     subreddit = r.get_subreddit("chtorrr")  # Testing data is in /r/chtorrr
   else:
     subreddit = r.get_subreddit("freeebooks")  # Real data is in /r/FreeEbooks
   modified_submissions, unknown_submissions = CheckSubmissions(subreddit)
-
-  if len(unknown_submissions) > 0:
-    unknown_digest = MakeUnknownDigest(unknown_submissions)
-    # At the moment, there are too many unknown submissions to be sent in a PM.
-    # Once I add a whitelist of websites to ignore because their contents are
-    # always free (example: Project Gutenberg), this might become more
-    # feasible.
-    #r.send_message("penguinland", "Requires human review", unknown_digest)
 
   if len(modified_submissions) > 0:
     modified_digest = MakeModifiedDigest(modified_submissions)
@@ -183,6 +190,10 @@ def Main():
     else:
       recipient = "/r/FreeEbooks"  # Send the real digest to the mods
     r.send_message(recipient, "Bot Digest", modified_digest)
+
+  if len(unknown_submissions) > 0:
+    unknown_digest = MakeUnknownDigest(unknown_submissions)
+    r.send_message("penguinland", "Requires human review", unknown_digest)
 
 if __name__ == "__main__":
   Main()
