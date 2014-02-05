@@ -189,17 +189,20 @@ def Main():
     subreddit = r.get_subreddit("freeebooks")  # Real data is in /r/FreeEbooks
   modified_submissions, unknown_submissions = CheckSubmissions(subreddit)
 
+  modified_digest = ""
   if len(modified_submissions) > 0:
     modified_digest = MakeModifiedDigest(modified_submissions)
-    if TESTING:
-      recipient = "penguinland"  # Send test digests only to me.
-    else:
-      recipient = "/r/FreeEbooks"  # Send the real digest to the mods
-    r.send_message(recipient, "Bot Digest", modified_digest)
 
+  unknown_digest = ""
   if len(unknown_submissions) > 0:
     unknown_digest = MakeUnknownDigest(unknown_submissions)
-    r.send_message("penguinland", "Requires human review", unknown_digest)
+
+  if TESTING:
+    recipient = "penguinland"  # Send test digests only to me.
+  else:
+    recipient = "/r/FreeEbooks"  # Send the real digest to the mods
+  r.send_message(recipient, "Bot Digest",
+      modified_digest + "\n\n" + unknown_digest)
 
 if __name__ == "__main__":
   Main()
