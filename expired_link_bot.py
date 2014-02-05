@@ -170,10 +170,9 @@ def MakeUnknownDigest(unknown_submissions):
   moderators.
   """
   formatted_submissions = [
-      u"[%s](%s) ([direct link](%s))" %
-      (sub.title, sub.permalink, sub.url)
+      u"([direct link](%s)) [%s](%s)" % (sub.url, sub.title, sub.permalink)
       for sub in unknown_submissions]
-  digest = (u"Couldn't deal with %d submission(s):\n\n%s" %
+  digest = (u"Human review needed for %d submission(s):\n\n%s" %
             (len(formatted_submissions), u"\n\n".join(formatted_submissions)))
   return digest
 
@@ -187,15 +186,10 @@ def Main():
     subreddit = r.get_subreddit("chtorrr")  # Testing data is in /r/chtorrr
   else:
     subreddit = r.get_subreddit("freeebooks")  # Real data is in /r/FreeEbooks
+
   modified_submissions, unknown_submissions = CheckSubmissions(subreddit)
-
-  modified_digest = ""
-  if len(modified_submissions) > 0:
-    modified_digest = MakeModifiedDigest(modified_submissions)
-
-  unknown_digest = ""
-  if len(unknown_submissions) > 0:
-    unknown_digest = MakeUnknownDigest(unknown_submissions)
+  modified_digest = MakeModifiedDigest(modified_submissions)
+  unknown_digest = MakeUnknownDigest(unknown_submissions)
 
   if TESTING:
     recipient = "penguinland"  # Send test digests only to me.
