@@ -180,12 +180,12 @@ def MakeUnknownDigest(unknown_submissions):
             (len(formatted_submissions), u"\n\n".join(formatted_submissions)))
   return digest
 
-def Main():
-  # useragent string
-  r = praw.Reddit("/r/FreeEbooks expired-link-marking bot "
-                  "by /u/penguinland v. 1.2")
-  r.login(username, password)
-
+def RunIteration(r):
+  """
+  Given a PRAW Reddit object, do everything the bot is supposed to do: grab
+  stuff from the subreddit, find the expired submissions, and send an update to
+  the mods. This returns nothing.
+  """
   if TEST_DATA:
     subreddit = r.get_subreddit("chtorrr")  # Testing data is in /r/chtorrr
   else:
@@ -203,4 +203,8 @@ def Main():
       modified_digest + "\n\n" + unknown_digest)
 
 if __name__ == "__main__":
-  Main()
+  # useragent string
+  r = praw.Reddit("/r/FreeEbooks expired-link-marking bot "
+                  "by /u/penguinland v. 1.2")
+  r.login(username, password)
+  RunIteration(r)
