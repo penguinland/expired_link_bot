@@ -126,7 +126,9 @@ def CheckSubmissions(subreddit):
   modified_submissions = []
   unknown_submissions = []
 
-  for submission in subreddit.get_hot(limit=200):
+  for rank, submission in enumerate(subreddit.get_hot(limit=200)):
+    submission.rank = rank  # Used when creating digests for the mods
+
     # Skip anything already marked as expired, unless it's test data.
     if submission.link_flair_css_class == expired_css_class and not TEST_DATA:
       continue
@@ -157,7 +159,8 @@ def MakeModifiedDigest(modified_submissions):
   of the modified submissions, intended to be sent to the moderators.
   """
   formatted_submissions = [
-      u"[%s](%s) (%s)" % (sub.title, sub.permalink, sub.list_price)
+      u"#%d: [%s](%s) (%s)" %
+      (sub.rank, sub.title, sub.permalink, sub.list_price)
       for sub in modified_submissions]
   digest = (u"Marked %d submission(s) as expired:\n\n%s" %
             (len(formatted_submissions), u"\n\n".join(formatted_submissions)))
@@ -170,7 +173,8 @@ def MakeUnknownDigest(unknown_submissions):
   moderators.
   """
   formatted_submissions = [
-      u"([direct link](%s)) [%s](%s)" % (sub.url, sub.title, sub.permalink)
+      u"#%d: ([direct link](%s)) [%s](%s)" %
+      (sub.rank, sub.url, sub.title, sub.permalink)
       for sub in unknown_submissions]
   digest = (u"Human review needed for %d submission(s):\n\n%s" %
             (len(formatted_submissions), u"\n\n".join(formatted_submissions)))
