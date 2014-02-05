@@ -25,7 +25,8 @@ import re
 import time
 import urllib2
 
-TESTING = True  # Set to false for the real version.
+TEST_DATA = False  # Set to false for the real version.
+DRY_RUN = True  # Set to false to make actual changes
 
 username = "expired_link_bot"
 password = ""  # Remember to put in the password when actually using this!
@@ -77,7 +78,6 @@ def GetPrice(url):
   current price. If we do not know how to get the price, or if we're unable to
   get the price, return the empty string.
   """
-
   price_selector = GetPriceSelector(url)
   if not price_selector:
     # The url is on a website where we don't know how to find the price
@@ -128,11 +128,11 @@ def CheckSubmissions(subreddit):
 
   for submission in subreddit.get_hot(limit=200):
     # Skip anything already marked as expired, unless it's test data.
-    if submission.link_flair_css_class == expired_css_class and not TESTING:
+    if submission.link_flair_css_class == expired_css_class and not TEST_DATA:
       continue
 
-    # The price might be the empty string if we're unable to get the real price.
     price = GetPrice(submission.url)
+    # The price might be the empty string if we're unable to get the real price.
     if not price:
       if not IsKnownFree(submission.url):  # Requires human review
         unknown_submissions.append(submission)
@@ -144,7 +144,7 @@ def CheckSubmissions(subreddit):
 
     # If we get here, this submission is no longer free. Make a comment
     # explaining this and set the flair to expired.
-    if not TESTING:
+    if not DRY_RUN:
       submission.add_comment(expired_message % (price, submission.permalink))
       subreddit.set_flair(submission, expired_flair, expired_css_class)
     submission.list_price = price  # Store this to put in the digest later.
@@ -182,7 +182,7 @@ def Main():
                   "by /u/penguinland v. 1.2")
   r.login(username, password)
 
-  if TESTING:
+  if TEST_DATA:
     subreddit = r.get_subreddit("chtorrr")  # Testing data is in /r/chtorrr
   else:
     subreddit = r.get_subreddit("freeebooks")  # Real data is in /r/FreeEbooks
@@ -191,7 +191,7 @@ def Main():
   modified_digest = MakeModifiedDigest(modified_submissions)
   unknown_digest = MakeUnknownDigest(unknown_submissions)
 
-  if TESTING:
+  if DRY_RUN:
     recipient = "penguinland"  # Send test digests only to me.
   else:
     recipient = "/r/FreeEbooks"  # Send the real digest to the mods
