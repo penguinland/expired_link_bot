@@ -51,7 +51,7 @@ moderators](http://www.reddit.com/message/compose?to=/r/FreeEBOOKS&subject=expir
 # to be ignored, and the keys are URLs to submissions that the bot can't handle
 # on its own. We keep a cache so that we only send each "needs human review"
 # submission to the mods once.
-needs_review_cache = lrucache.lrucache(100)  # Cache can store 100 submissions
+needs_review_cache = pylru.lrucache(100)  # Cache can store 100 submissions
 
 def GetPriceSelector(url):
   """
@@ -151,11 +151,11 @@ def CheckSubmissions(subreddit):
       # Check if we've already sent this URL to the mods
       if submission.url in needs_review_cache:
         # Move it to the front of the cache.
-        ignored = needs_review_cache[submissin.url]
+        ignored = needs_review_cache[submission.url]
       else:
         # Send it to the mods, and put it in the cache for later.
         needs_review_submissions.append(submission)
-        needs_review_cache[submissin.url] = True  # Dummy value
+        needs_review_cache[submission.url] = True  # Dummy value
     # This next line is a little hard for non-Python people to read. It's
     # asking whether any nonzero digit is contained in the price.
     if not any(digit in price for digit in "123456789"):
