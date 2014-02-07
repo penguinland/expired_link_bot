@@ -33,6 +33,8 @@ DRY_RUN = True  # Set to false to make actual changes
 username = "expired_link_bot"
 password = ""  # Remember to put in the password when actually using this!
 
+ONE_HOUR_IN_SECONDS = 60 * 60
+
 expired_flair = "Expired"  # Flair on /r/FreeEbooks
 expired_css_class = "closed"
 
@@ -224,4 +226,23 @@ if __name__ == "__main__":
   r = praw.Reddit("/r/FreeEbooks expired-link-marking bot "
                   "by /u/penguinland v. 1.2")
   r.login(username, password)
-  RunIteration(r)
+
+  if DRY_RUN:
+    RunIteration(r)
+    RunIteration(r)
+  else:
+    while True:
+      # We want to run once per day, at roughly the same time every day,
+      # regardless of when this script is started. This was originally done by
+      # running it as a cron job, but now that we have a cache of stuff that
+      # has already been sent to the mods, we need to do this cron-like
+      # behavior from within the Python script so we can keep the cache around.
+      # So, check the time once every hour, and run once each morning.
+      now = time.localtime()
+      if now.tm_hour == 4:  # 4 AM PST, 7 AM EST, Noon GMT
+        RunIteration(r)
+	# Sleep until it's early in the next hour, so that we'll wake up at a
+	# good time for tomorrow's run (3 minutes into the hour).
+        time.sleep(ONE_HOUR_IN_SECONDS - 60 * (now.tm_min - 3))
+      else:  # It's the wrong hour; wait some more.
+        time.sleep(ONE_HOUR_IN_SECONDS)
