@@ -133,7 +133,7 @@ def CheckSubmissions(subreddit):
   were unable to get the price).
   """
   modified_submissions = []
-  unknown_submissions = []
+  needs_review_submissions = []
 
   for rank, submission in enumerate(subreddit.get_hot(limit=200)):
     submission.rank = rank  # Used when creating digests for the mods
@@ -154,7 +154,7 @@ def CheckSubmissions(subreddit):
         ignored = needs_review_cache[submissin.url]
       else:
         # Send it to the mods, and put it in the cache for later.
-        unknown_submissions.append(submission)
+        needs_review_submissions.append(submission)
         needs_review_cache[submissin.url] = True  # Dummy value
     # This next line is a little hard for non-Python people to read. It's
     # asking whether any nonzero digit is contained in the price.
@@ -168,7 +168,7 @@ def CheckSubmissions(subreddit):
       subreddit.set_flair(submission, expired_flair, expired_css_class)
     submission.list_price = price  # Store this to put in the digest later.
     modified_submissions.append(submission)
-  return modified_submissions, unknown_submissions
+  return modified_submissions, needs_review_submissions
 
 def MakeModifiedDigest(modified_submissions):
   """
@@ -183,7 +183,7 @@ def MakeModifiedDigest(modified_submissions):
             (len(formatted_submissions), u"\n\n".join(formatted_submissions)))
   return digest
 
-def MakeUnknownDigest(unknown_submissions):
+def MakeNeedsReviewDigest(needs_review_submissions):
   """
   Given a list of submissions the bot couldn't process, returns a string
   containing a summary of these submissions, intended to be sent to the
@@ -192,7 +192,7 @@ def MakeUnknownDigest(unknown_submissions):
   formatted_submissions = [
       u"#%d: ([direct link](%s)) [%s](%s)" %
       (sub.rank, sub.url, sub.title, sub.permalink)
-      for sub in unknown_submissions]
+      for sub in needs_review_submissions]
   digest = (u"Human review needed for %d submission(s):\n\n%s" %
             (len(formatted_submissions), u"\n\n".join(formatted_submissions)))
   return digest
@@ -208,9 +208,9 @@ def RunIteration(r):
   else:
     subreddit = r.get_subreddit("freeebooks")  # Real data is in /r/FreeEbooks
 
-  modified_submissions, unknown_submissions = CheckSubmissions(subreddit)
+  modified_submissions, needs_review_submissions = CheckSubmissions(subreddit)
   modified_digest = MakeModifiedDigest(modified_submissions)
-  unknown_digest = MakeUnknownDigest(unknown_submissions)
+  unknown_digest = MakeNeedsReviewDigest(needs_review_submissions)
 
   if DRY_RUN:
     recipient = "penguinland"  # Send test digests only to me.
