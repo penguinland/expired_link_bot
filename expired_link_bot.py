@@ -110,6 +110,7 @@ def IsKnownFree(url):
   """
   return url.startswith(("http://ebooks.adelaide.edu.au/",
                          "http://www.gutenberg.org/",
+                         "http://gutenberg.org/",
                          "http://www.topfreebooks.org/",
                          # Feedbooks' paid content is in feedbooks.com/item/
                          "http://www.feedbooks.com/book/",
