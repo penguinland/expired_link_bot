@@ -13,14 +13,16 @@ To install praw without root,
 - Remember to export PYTHONPATH from your .zshrc as well!
 - Run the command again, and it should succeed this time:
     easy_install --prefix=~/local praw
-- You'll also need to install httplib2:
+- You'll also need to install httplib2 and pylru:
     easy_install --prefix=~/local httplib2
+    easy_install --prefix=~/local pylru
 - If you run this bot as a cron job, remember to set the PYTHONPATH up
   correctly in your crontab as well!
 """
 
 import httplib2
 import praw
+import pylru
 import re
 import time
 import urllib2
@@ -44,6 +46,12 @@ consequently has been marked as expired.
 I am a bot. If I have made a mistake, please [message the
 moderators](http://www.reddit.com/message/compose?to=/r/FreeEBOOKS&subject=expired_link_bot&message=%s).
 """
+
+# This LRU cache is full of (key, value) pairs. The values are dummy variables
+# to be ignored, and the keys are URLs to submissions that the bot can't handle
+# on its own. We keep a cache so that we only send each "needs human review"
+# submission to the mods once.
+needs_review_cache = lrucache.lrucache(100)  # Cache can store 100 submissions
 
 def GetPriceSelector(url):
   """
@@ -137,9 +145,17 @@ def CheckSubmissions(subreddit):
     price = GetPrice(submission.url)
     # The price might be the empty string if we're unable to get the real price.
     if not price:
-      if not IsKnownFree(submission.url):  # Requires human review
+      if IsKnownFree(submission.url):  # No human review needed!
+        continue
+
+      # Check if we've already sent this URL to the mods
+      if submission.url in needs_review_cache:
+        # Move it to the front of the cache.
+        ignored = needs_review_cache[submissin.url]
+      else:
+        # Send it to the mods, and put it in the cache for later.
         unknown_submissions.append(submission)
-      continue
+        needs_review_cache[submissin.url] = True  # Dummy value
     # This next line is a little hard for non-Python people to read. It's
     # asking whether any nonzero digit is contained in the price.
     if not any(digit in price for digit in "123456789"):
