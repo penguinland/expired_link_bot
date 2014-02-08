@@ -27,8 +27,8 @@ import re
 import time
 import urllib2
 
-TEST_DATA = False  # Set to false for the real version.
-DRY_RUN = True  # Set to false to make actual changes
+TEST_DATA = False  # Set to True to run over /r/chtorrr
+DRY_RUN = True  # Set to False to make actual changes
 
 username = "expired_link_bot"
 password = ""  # Remember to put in the password when actually using this!
@@ -246,6 +246,7 @@ if __name__ == "__main__":
         RunIteration(r)
 	# Sleep until it's early in the next hour, so that we'll wake up at a
 	# good time for tomorrow's run (3 minutes into the hour).
+        now = time.localtime()  # Update the time now that today's run is over
         time.sleep(ONE_HOUR_IN_SECONDS - 60 * (now.tm_min - 3))
       else:  # It's the wrong hour; wait some more.
         time.sleep(ONE_HOUR_IN_SECONDS)
