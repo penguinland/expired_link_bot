@@ -195,7 +195,7 @@ def MakeNeedsReviewDigest(needs_review_submissions):
       u"#%d: ([direct link](%s)) [%s](%s)" %
       (sub.rank, sub.url, sub.title, sub.permalink)
       for sub in needs_review_submissions]
-  digest = (u"Human review needed for %d submission(s):\n\n%s" %
+  digest = (u"Human review needed for %d new submission(s):\n\n%s" %
             (len(formatted_submissions), u"\n\n".join(formatted_submissions)))
   return digest
 
@@ -211,7 +211,11 @@ def RunIteration(r):
     subreddit = r.get_subreddit("freeebooks")  # Real data is in /r/FreeEbooks
 
   modified_submissions, needs_review_submissions = CheckSubmissions(subreddit)
-  modified_digest = MakeModifiedDigest(modified_submissions)
+  #modified_digest = MakeModifiedDigest(modified_submissions)
+  modified_digest = ("Marked %d submission(s) as expired. See the [moderation "
+      "log]"
+      "(http://www.reddit.com/r/FreeEBOOKS/about/log/?mod=expired_link_bot) "
+      "for details." % len(modified_submissions))
   unknown_digest = MakeNeedsReviewDigest(needs_review_submissions)
 
   if DRY_RUN:
@@ -224,11 +228,10 @@ def RunIteration(r):
 if __name__ == "__main__":
   # useragent string
   r = praw.Reddit("/r/FreeEbooks expired-link-marking bot "
-                  "by /u/penguinland v. 1.2")
+                  "by /u/penguinland v. 2.0")
   r.login(username, password)
 
   if DRY_RUN:
-    RunIteration(r)
     RunIteration(r)
   else:
     while True:
