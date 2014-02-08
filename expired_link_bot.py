@@ -2,9 +2,11 @@
 
 """
 A bot to find submissions in /r/FreeEbooks that are no longer free and to mark
-them as expired. This was made by /u/penguinland.
+them as expired. The bot also sends mail to the mods telling them of any new
+submissions that this bot can't handle (mark as expired when the time comes) on
+its own. This was made by /u/penguinland.
 
-To install praw without root,
+To install PRAW without root,
 - Choose a local directory to install to, such as ~/local.
 - Try running:
     easy_install --prefix=~/local praw
@@ -171,31 +173,20 @@ def CheckSubmissions(subreddit):
     modified_submissions.append(submission)
   return modified_submissions, needs_review_submissions
 
-def MakeModifiedDigest(modified_submissions):
+def MakeDigest(submissions, FormatSubmission, digest_template):
   """
-  Given a list of modified submissions, returns a string containing a summary
-  of the modified submissions, intended to be sent to the moderators.
+  - submissions is a list of submissions to put in the digest.
+  - FormatSubmission is a functon that takes a submision and returns a string
+    containing the relevant information.
+  - digest_template is a string template that will be used to create the
+    digest. It must have places for the number of submissions and for a string
+    representation of the submissions.
+  - We return a string containing the summary of these submissions, intended to
+    be sent to the moderators.
   """
-  formatted_submissions = [
-      u"#%d: [%s](%s) (%s)" %
-      (sub.rank, sub.title, sub.permalink, sub.list_price)
-      for sub in modified_submissions]
-  digest = (u"Marked %d submission(s) as expired:\n\n%s" %
-            (len(formatted_submissions), u"\n\n".join(formatted_submissions)))
-  return digest
-
-def MakeNeedsReviewDigest(needs_review_submissions):
-  """
-  Given a list of submissions the bot couldn't process, returns a string
-  containing a summary of these submissions, intended to be sent to the
-  moderators.
-  """
-  formatted_submissions = [
-      u"#%d: ([direct link](%s)) [%s](%s)" %
-      (sub.rank, sub.url, sub.title, sub.permalink)
-      for sub in needs_review_submissions]
-  digest = (u"Human review needed for %d new submission(s):\n\n%s" %
-            (len(formatted_submissions), u"\n\n".join(formatted_submissions)))
+  formatted_submissions = [FormatSubmission(sub) for sub in submissions]
+  digest = (digest_template %
+            (len(formatted_submissions), "\n\n".join(formatted_submissions)))
   return digest
 
 def RunIteration(r):
@@ -210,12 +201,22 @@ def RunIteration(r):
     subreddit = r.get_subreddit("freeebooks")
 
   modified_submissions, needs_review_submissions = CheckSubmissions(subreddit)
-  #modified_digest = MakeModifiedDigest(modified_submissions)
+  # We no longer use the detailed digest of modified submissions, but I leave
+  # it here in case we ever need it again.
+  #modified_digest = MakeDigest(
+  #    modified_submissions,
+  #    (lambda sub: "#%d: [%s](%s) (%s)" %
+  #                 (sub.rank, sub.title, sub.permalink, sub.list_price)),
+  #    u"Marked %d submission(s) as expired:\n\n%s")
   modified_digest = ("Marked %d submission(s) as expired. See the "
       "[moderation log]"
       "(http://www.reddit.com/r/FreeEBOOKS/about/log/?mod=expired_link_bot) "
       "for details." % len(modified_submissions))
-  needs_review_digest = MakeNeedsReviewDigest(needs_review_submissions)
+  needs_review_digest = MakeDigest(
+      needs_review_submissions,
+      (lambda sub: "#%d: ([direct link](%s)) [%s](%s)" %
+                   (sub.rank, sub.url, sub.title, sub.permalink)),
+      "Human review needed for %d new submission(s):\n\n%s")
 
   if DRY_RUN:
     recipient = "penguinland"  # Send test digests only to me.
