@@ -150,10 +150,8 @@ def CheckSubmissions(subreddit):
       if IsKnownFree(submission.url):  # No human review needed!
         continue
 
-      # Check if we've already sent this URL to the mods
       if submission.url not in needs_review_cache:
-        # Send it to the mods, and put it in the cache for later.
-        needs_review_submissions.append(submission)
+        needs_review_submissions.append(submission)  # Send it to the mods!
       # Regardless of whether we need to tell the mods, move this submission to
       # the front of the cache.
       needs_review_cache[submission.url] = True  # Dummy value
