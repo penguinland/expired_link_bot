@@ -151,13 +151,14 @@ def CheckSubmissions(subreddit):
         continue
 
       # Check if we've already sent this URL to the mods
-      if submission.url in needs_review_cache:
-        # Move it to the front of the cache.
-        ignored = needs_review_cache[submission.url]
-      else:
+      if submission.url not in needs_review_cache:
         # Send it to the mods, and put it in the cache for later.
         needs_review_submissions.append(submission)
-        needs_review_cache[submission.url] = True  # Dummy value
+      # Regardless of whether we need to tell the mods, move this submission to
+      # the front of the cache.
+      needs_review_cache[submission.url] = True  # Dummy value
+      continue
+
     # This next line is a little hard for non-Python people to read. It's
     # asking whether any nonzero digit is contained in the price.
     if not any(digit in price for digit in "123456789"):
@@ -206,9 +207,9 @@ def RunIteration(r):
   the mods. This returns nothing.
   """
   if TEST_DATA:
-    subreddit = r.get_subreddit("chtorrr")  # Testing data is in /r/chtorrr
+    subreddit = r.get_subreddit("chtorrr")
   else:
-    subreddit = r.get_subreddit("freeebooks")  # Real data is in /r/FreeEbooks
+    subreddit = r.get_subreddit("freeebooks")
 
   modified_submissions, needs_review_submissions = CheckSubmissions(subreddit)
   #modified_digest = MakeModifiedDigest(modified_submissions)
