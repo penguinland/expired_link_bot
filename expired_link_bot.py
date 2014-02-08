@@ -212,18 +212,18 @@ def RunIteration(r):
 
   modified_submissions, needs_review_submissions = CheckSubmissions(subreddit)
   #modified_digest = MakeModifiedDigest(modified_submissions)
-  modified_digest = ("Marked %d submission(s) as expired. See the [moderation "
-      "log]"
+  modified_digest = ("Marked %d submission(s) as expired. See the "
+      "[moderation log]"
       "(http://www.reddit.com/r/FreeEBOOKS/about/log/?mod=expired_link_bot) "
       "for details." % len(modified_submissions))
-  unknown_digest = MakeNeedsReviewDigest(needs_review_submissions)
+  needs_review_digest = MakeNeedsReviewDigest(needs_review_submissions)
 
   if DRY_RUN:
     recipient = "penguinland"  # Send test digests only to me.
   else:
     recipient = "/r/FreeEbooks"  # Send the real digest to the mods
   r.send_message(recipient, "Bot Digest",
-      modified_digest + "\n\n" + unknown_digest)
+      modified_digest + "\n\n" + needs_review_digest)
 
 if __name__ == "__main__":
   # useragent string
