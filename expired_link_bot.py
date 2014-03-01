@@ -127,6 +127,9 @@ def IsKnownFree(url):
                          # Feedbooks' paid content is in feedbooks.com/item/
                          "http://www.feedbooks.com/book/",
                          "http://www.feedbooks.com/userbook/",
+                         "https://librivox.org/",
+                         "https://www.librivox.org/",
+                         "http://podiobooks.com/",
                          "https://openlibrary.org/"))
 
 def CheckSubmissions(subreddit):
