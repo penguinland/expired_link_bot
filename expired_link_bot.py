@@ -23,6 +23,7 @@ To install PRAW without root,
 """
 
 import httplib2
+import os
 import praw
 import pylru
 import re
@@ -36,6 +37,7 @@ username = "expired_link_bot"
 password = ""  # Remember to put in the password when actually using this!
 
 ONE_HOUR_IN_SECONDS = 60 * 60
+CACHE_FILE = "expired_link_bot_cache.txt"
 
 expired_flair = "Expired"  # Flair on /r/FreeEbooks
 expired_css_class = "closed"
@@ -132,6 +134,58 @@ def IsKnownFree(url):
                          "http://podiobooks.com/",
                          "https://openlibrary.org/"))
 
+def LoadCacheFromFile():
+  """
+  This function returns a pylru.lrucache object containing (key, value) pairs.
+  The keys are strings containing the URLs of submissions which the bot can't
+  handle on its own but which have already been sent to the mods. The values are
+  just dummy values to be ignored. We try to read CACHE_FILE. If we can, we
+  return a pylru.lrucache object containing its contents, with the top line of
+  the file being the most recently used entry and the last line of the file
+  being the least recently used entry. If we cannot read the file, we return an
+  empty pylru.lrucache object.
+  This function should return a cache containing the same state as the cache
+  last passed to StoreCacheToFile().
+  """
+  cache = pylru.lrucache(100)  # Cache can store 100 submissions
+
+  try:
+    f = open(CACHE_FILE)
+    contents = f.readlines()
+    f.close()
+  except:  # Can't read the file; give up and start from scratch.
+    print "WARNING: Unable to load cache. Starting over with an empty cache."
+    return cache
+
+  # The most recently used line is first in the file, which means it should be
+  # inserted into the cache last.
+  for line in reversed(contents):
+    cache[line.strip()] = True  # Dummy value
+  return cache
+
+def StoreCacheToFile(cache):
+  """
+  cache is a pylru.lrucache object. We write the keys of this cache to
+  CACHE_FILE, one line per entry. These entries will be sorted from most
+  recently used (first line of the file) to least recently used (last line of
+  the file). Calling LoadCacheFromFile() ought to return the same cache that s
+  written out here.
+  """
+  # We don't want to overwrite the old contents of the cache until the entire
+  # new version can be written. Consequently, we will write to a temporary file
+  # and then rename it to be CACHE_FILE itself.
+  out_file_name = "%s.tmp" % CACHE_FILE
+  out_file = open(out_file_name, "w")
+  # pylru claims that iterating through the keys in the cache iterates from
+  # most recently used to least recently used.
+  for key in cache:
+    out_file.write(key)
+    out_file.write("\n")
+  out_file.close()
+  # Now that we're done successfully writing out the file, rename it to the
+  # proper filename.
+  os.rename(out_file_name, CACHE_FILE)
+
 def CheckSubmissions(subreddit):
   """
   Given a subreddit, marks expired links and returns a list of the submissions
@@ -141,6 +195,7 @@ def CheckSubmissions(subreddit):
   """
   modified_submissions = []
   needs_review_submissions = []
+  needs_review_cache = LoadCacheFromFile()
 
   for rank, submission in enumerate(subreddit.get_hot(limit=200)):
     submission.rank = rank  # Used when creating digests for the mods
@@ -174,6 +229,8 @@ def CheckSubmissions(subreddit):
       subreddit.set_flair(submission, expired_flair, expired_css_class)
     submission.list_price = price  # Store this to put in the digest later.
     modified_submissions.append(submission)
+  if not DRY_RUN:  # Don't change the next run's cache if this is just a test
+    StoreCacheToFile(needs_review_cache)
   return modified_submissions, needs_review_submissions
 
 def MakeDigest(submissions, FormatSubmission, digest_template):
@@ -228,28 +285,32 @@ def RunIteration(r):
   r.send_message(recipient, "Bot Digest",
       modified_digest + "\n\n" + needs_review_digest)
 
+def InternalCron(r):
+  while True:
+    # We want to run once per day, at roughly the same time every day,
+    # regardless of when this script is started. This was originally done by
+    # running it as a cron job, but now that we have a cache of stuff that
+    # has already been sent to the mods, we need to do this cron-like
+    # behavior from within the Python script so we can keep the cache around.
+    # So, check the time once every hour, and run once each morning.
+    now = time.localtime()
+    if now.tm_hour == 4:  # 4 AM PST, 7 AM EST, Noon GMT
+      RunIteration(r)
+      # Sleep until it's early in the next hour, so that we'll wake up at a
+      # good time for tomorrow's run (3 minutes into the hour).
+      now = time.localtime()  # Update the time now that today's run is over
+      time.sleep(ONE_HOUR_IN_SECONDS - 60 * (now.tm_min - 3))
+    else:  # It's the wrong hour; wait some more.
+      time.sleep(ONE_HOUR_IN_SECONDS)
+
 if __name__ == "__main__":
   # useragent string
   r = praw.Reddit("/r/FreeEbooks expired-link-marking bot "
-                  "by /u/penguinland v. 2.0")
+                  "by /u/penguinland v. 2.1")
   r.login(username, password)
 
   if DRY_RUN:
     RunIteration(r)
   else:
-    while True:
-      # We want to run once per day, at roughly the same time every day,
-      # regardless of when this script is started. This was originally done by
-      # running it as a cron job, but now that we have a cache of stuff that
-      # has already been sent to the mods, we need to do this cron-like
-      # behavior from within the Python script so we can keep the cache around.
-      # So, check the time once every hour, and run once each morning.
-      now = time.localtime()
-      if now.tm_hour == 4:  # 4 AM PST, 7 AM EST, Noon GMT
-        RunIteration(r)
-	# Sleep until it's early in the next hour, so that we'll wake up at a
-	# good time for tomorrow's run (3 minutes into the hour).
-        now = time.localtime()  # Update the time now that today's run is over
-        time.sleep(ONE_HOUR_IN_SECONDS - 60 * (now.tm_min - 3))
-      else:  # It's the wrong hour; wait some more.
-        time.sleep(ONE_HOUR_IN_SECONDS)
+    #InternalCron(r)
+    RunIteration(r)
