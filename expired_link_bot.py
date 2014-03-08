@@ -33,19 +33,19 @@ import urllib2
 TEST_DATA = False  # Set to True to run over /r/chtorrr
 DRY_RUN = True  # Set to False to make actual changes
 
-username = "expired_link_bot"
-password = ""  # Remember to put in the password when actually using this!
+USERNAME = "expired_link_bot"
+PASSWORD = ""  # Remember to put in the password when actually using this!
 
 ONE_HOUR_IN_SECONDS = 60 * 60
 CACHE_FILE = "expired_link_bot_cache.txt"
 
-expired_flair = "Expired"  # Flair on /r/FreeEbooks
-expired_css_class = "closed"
+EXPIRED_FLAIR = "Expired"  # Flair on /r/FreeEbooks
+EXPIRED_CSS_CLASS = "closed"
 
 # Note that this is a template. You need to supply the current price of the
 # book and the permalink to the Reddit submission for this comment to make
 # sense to readers.
-expired_message = u"""
+EXPIRED_MESSAGE = u"""
 This link points to an ebook that is no longer free (current price: %s), and
 consequently has been marked as expired.
 
@@ -195,7 +195,7 @@ def CheckSubmissions(subreddit):
     submission.rank = rank  # Used when creating digests for the mods
 
     # Skip anything already marked as expired, unless it's test data.
-    if submission.link_flair_css_class == expired_css_class and not TEST_DATA:
+    if submission.link_flair_css_class == EXPIRED_CSS_CLASS and not TEST_DATA:
       continue
 
     price = GetPrice(submission.url)
@@ -219,8 +219,8 @@ def CheckSubmissions(subreddit):
     # If we get here, this submission is no longer free. Make a comment
     # explaining this and set the flair to expired.
     if not DRY_RUN:
-      submission.add_comment(expired_message % (price, submission.permalink))
-      subreddit.set_flair(submission, expired_flair, expired_css_class)
+      submission.add_comment(EXPIRED_MESSAGE % (price, submission.permalink))
+      subreddit.set_flair(submission, EXPIRED_FLAIR, EXPIRED_CSS_CLASS)
     submission.list_price = price  # Store this to put in the digest later.
     modified_submissions.append(submission)
   if not DRY_RUN:  # Don't change the next run's cache if this is just a test
@@ -283,6 +283,6 @@ if __name__ == "__main__":
   # useragent string
   r = praw.Reddit("/r/FreeEbooks expired-link-marking bot "
                   "by /u/penguinland v. 2.1")
-  r.login(username, password)
+  r.login(USERNAME, PASSWORD)
 
   RunIteration(r)
