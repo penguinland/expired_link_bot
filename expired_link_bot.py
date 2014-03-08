@@ -53,12 +53,6 @@ I am a bot. If I have made a mistake, please [message the
 moderators](http://www.reddit.com/message/compose?to=/r/FreeEBOOKS&subject=expired_link_bot&message=%s).
 """
 
-# This LRU cache is full of (key, value) pairs. The values are dummy variables
-# to be ignored, and the keys are URLs to submissions that the bot can't handle
-# on its own. We keep a cache so that we only send each "needs human review"
-# submission to the mods once.
-needs_review_cache = pylru.lrucache(100)  # Cache can store 100 submissions
-
 def GetPriceSelector(url):
   """
   Given a string containing a URL, if it matches something where we know how to
