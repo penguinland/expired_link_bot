@@ -276,7 +276,7 @@ def RunIteration(r):
                    (sub.rank, sub.url, sub.title, sub.permalink)),
       "Human review needed for %d new submission(s):\n\n%s")
 
-  if DRY_RUN:
+  if DRY_RUN or TEST_DATA:
     recipient = "penguinland"  # Send test digests only to me.
   else:
     recipient = "/r/FreeEbooks"  # Send the real digest to the mods
