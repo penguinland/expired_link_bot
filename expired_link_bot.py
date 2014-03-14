@@ -60,6 +60,10 @@ def GetPriceSelector(url):
   have the price in its first group. If we don't know how to find the price on
   this URL, return the empty string.
   """
+  # Handle Amazon Mobile links first, and then do all other Amazon links as
+  # though they're not mobile.
+  if url.startswith("http://www.amazon.com/gp/"):
+    return r'<b>Price:</b>&nbsp;([^&]*)&nbsp;<br />'
   if url.startswith(("http://www.amazon.com/",
                      "http://amzn.com/",
                      "http://www.amazon.co.uk/",
