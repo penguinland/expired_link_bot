@@ -227,7 +227,8 @@ def CheckSubmissions(subreddit):
       subreddit.set_flair(submission, EXPIRED_FLAIR, EXPIRED_CSS_CLASS)
     submission.list_price = price  # Store this to put in the digest later.
     modified_submissions.append(submission)
-  if not DRY_RUN:  # Don't change the next run's cache if this is just a test
+  if not DRY_RUN and not TEST_DATA:
+    # Don't change the next run's cache if this is just a test
     StoreCacheToFile(needs_review_cache)
   return modified_submissions, needs_review_submissions
 
