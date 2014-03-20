@@ -130,6 +130,7 @@ def IsKnownFree(url):
                          "https://librivox.org/",
                          "https://www.librivox.org/",
                          "http://podiobooks.com/",
+                         "http://quirkystories.com/",
                          "https://openlibrary.org/"))
 
 def LoadCacheFromFile():
