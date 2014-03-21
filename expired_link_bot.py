@@ -70,7 +70,8 @@ def GetPriceSelector(url):
                      "https://www.amazon.co.uk/",
                      "http://www.amazon.ca/")):
     return r'\s+class="priceLarge"\s*>([^<]*)<'
-  if url.startswith("https://www.smashwords.com/"):
+  if url.startswith(("http://www.smashwords.com/",
+                     "https://www.smashwords.com/")):
     return r'class="panel-title text-center">\s*Price:([^<]*)<'
   if url.startswith("http://www.barnesandnoble.com/"):
     return r'itemprop="price" data-bntrack="Price" data-bntrack-event="click">([^<]*)<'
