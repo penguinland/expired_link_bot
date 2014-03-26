@@ -27,6 +27,7 @@ import os
 import praw
 import pylru
 import re
+import sys
 import time
 import urllib2
 
@@ -114,6 +115,8 @@ def GetPrice(url):
   except:
     print "Unable to download/parse URL:"
     print url
+    print "(type, value, traceback):"
+    print sys.exc_info()
     return ""
 
 def IsKnownFree(url):
