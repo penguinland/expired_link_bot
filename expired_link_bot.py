@@ -38,7 +38,7 @@ USERNAME = "expired_link_bot"
 PASSWORD = ""  # Remember to put in the password when actually using this!
 
 ONE_HOUR_IN_SECONDS = 60 * 60
-CACHE_FILE = "expired_link_bot_cache.txt"
+NEEDS_REVIEW_CACHE_FILE = "expired_link_bot_cache.txt"
 
 EXPIRED_FLAIR = "Expired"  # Flair on /r/FreeEbooks
 EXPIRED_CSS_CLASS = "closed"
@@ -198,7 +198,7 @@ def CheckSubmissions(subreddit):
   """
   modified_submissions = []
   needs_review_submissions = []
-  needs_review_cache = LoadCacheFromFile(CACHE_FILE)
+  needs_review_cache = LoadCacheFromFile(NEEDS_REVIEW_CACHE_FILE)
 
   for rank, submission in enumerate(subreddit.get_hot(limit=200)):
     submission.rank = rank  # Used when creating digests for the mods
@@ -234,7 +234,7 @@ def CheckSubmissions(subreddit):
     modified_submissions.append(submission)
   if not DRY_RUN and not TEST_DATA:
     # Don't change the next run's cache if this is just a test
-    StoreCacheToFile(needs_review_cache, CACHE_FILE)
+    StoreCacheToFile(needs_review_cache, NEEDS_REVIEW_CACHE_FILE)
   return modified_submissions, needs_review_submissions
 
 def MakeDigest(submissions, FormatSubmission, digest_template):
