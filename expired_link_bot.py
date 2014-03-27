@@ -38,7 +38,7 @@ USERNAME = "expired_link_bot"
 PASSWORD = ""  # Remember to put in the password when actually using this!
 
 ONE_HOUR_IN_SECONDS = 60 * 60
-NEEDS_REVIEW_CACHE_FILE = "expired_link_bot_cache.txt"
+NEEDS_REVIEW_CACHE_FILE = "needs_review_cache.txt"
 ALREADY_EXPIRED_CACHE_FILE = "already_expired_cache.txt"
 
 EXPIRED_FLAIR = "Expired"  # Flair on /r/FreeEbooks
@@ -178,17 +178,17 @@ def StoreCacheToFile(cache, filename):
   # We don't want to overwrite the old contents of the cache until the entire
   # new version can be written. Consequently, we will write to a temporary file
   # and then rename it to be filename itself.
-  out_filename = "%s.tmp" % filename
-  out_file = open(out_filename, "w")
+  tmp_filename = "%s.tmp" % filename
+  tmp_file = open(tmp_filename, "w")
   # pylru claims that iterating through the keys in the cache iterates from
   # most recently used to least recently used.
   for key in cache:
-    out_file.write(key)
-    out_file.write("\n")
-  out_file.close()
+    tmp_file.write(key)
+    tmp_file.write("\n")
+  tmp_file.close()
   # Now that we're done successfully writing out the file, rename it to the
   # proper filename.
-  os.rename(out_filename, filename)
+  os.rename(tmp_filename, filename)
 
 def CheckSubmissions(subreddit):
   """
