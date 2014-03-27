@@ -39,6 +39,7 @@ PASSWORD = ""  # Remember to put in the password when actually using this!
 
 ONE_HOUR_IN_SECONDS = 60 * 60
 NEEDS_REVIEW_CACHE_FILE = "expired_link_bot_cache.txt"
+ALREADY_EXPIRED_CACHE_FILE = "already_expired_cache.txt"
 
 EXPIRED_FLAIR = "Expired"  # Flair on /r/FreeEbooks
 EXPIRED_CSS_CLASS = "closed"
@@ -199,12 +200,14 @@ def CheckSubmissions(subreddit):
   modified_submissions = []
   needs_review_submissions = []
   needs_review_cache = LoadCacheFromFile(NEEDS_REVIEW_CACHE_FILE)
+  already_expired_cache = LoadCacheFromFile(ALREADY_EXPIRED_CACHE_FILE)
 
   for rank, submission in enumerate(subreddit.get_hot(limit=200)):
     submission.rank = rank  # Used when creating digests for the mods
 
     # Skip anything already marked as expired, unless it's test data.
-    if submission.link_flair_css_class == EXPIRED_CSS_CLASS and not TEST_DATA:
+    if (submission.link_flair_css_class == EXPIRED_CSS_CLASS or
+        submission.url in already_expired_cache) and not TEST_DATA:
       continue
 
     price = GetPrice(submission.url)
@@ -230,10 +233,14 @@ def CheckSubmissions(subreddit):
     if not DRY_RUN:
       submission.add_comment(EXPIRED_MESSAGE % (price, submission.permalink))
       subreddit.set_flair(submission, EXPIRED_FLAIR, EXPIRED_CSS_CLASS)
+      # Add it to the cache, so that if we have made a mistake and this
+      # submission is later un-expired, we don't re-expire it the next day.
+      already_expired_cache[submission.url] = True  # Dummy value
     submission.list_price = price  # Store this to put in the digest later.
     modified_submissions.append(submission)
   if not DRY_RUN and not TEST_DATA:
     # Don't change the next run's cache if this is just a test
+    StoreCacheToFile(already_expired_cache, ALREADY_EXPIRED_CACHE_FILE)
     StoreCacheToFile(needs_review_cache, NEEDS_REVIEW_CACHE_FILE)
   return modified_submissions, needs_review_submissions
 
