@@ -137,23 +137,23 @@ def IsKnownFree(url):
                          "http://quirkystories.com/",
                          "https://openlibrary.org/"))
 
-def LoadCacheFromFile():
+def LoadCacheFromFile(filename):
   """
   This function returns a pylru.lrucache object containing (key, value) pairs.
   The keys are strings containing the URLs of submissions which the bot can't
   handle on its own but which have already been sent to the mods. The values are
-  just dummy values to be ignored. We try to read CACHE_FILE. If we can, we
-  return a pylru.lrucache object containing its contents, with the top line of
-  the file being the most recently used entry and the last line of the file
-  being the least recently used entry. If we cannot read the file, we return an
-  empty pylru.lrucache object.
-  This function should return a cache containing the same state as the cache
-  last passed to StoreCacheToFile().
+  just dummy values to be ignored. We try to read the file whose name is given
+  as an argument. If we can, we return a pylru.lrucache object containing its
+  contents, with the top line of the file being the most recently used entry
+  and the last line of the file being the least recently used entry. If we
+  cannot read the file, we return an empty pylru.lrucache object.  This function
+  should return a cache containing the same state as the cache last passed to
+  StoreCacheToFile().
   """
   cache = pylru.lrucache(100)  # Cache can store 100 submissions
 
   try:
-    f = open(CACHE_FILE)
+    f = open(filename)
     contents = f.readlines()
     f.close()
   except:  # Can't read the file; give up and start from scratch.
@@ -166,19 +166,19 @@ def LoadCacheFromFile():
     cache[line.strip()] = True  # Dummy value
   return cache
 
-def StoreCacheToFile(cache):
+def StoreCacheToFile(cache, filename):
   """
   cache is a pylru.lrucache object. We write the keys of this cache to
-  CACHE_FILE, one line per entry. These entries will be sorted from most
-  recently used (first line of the file) to least recently used (last line of
-  the file). Calling LoadCacheFromFile() ought to return the same cache that s
-  written out here.
+  filename (which is a string), one line per entry. These entries will be
+  sorted from most recently used (first line of the file) to least recently used
+  (last line of the file). Calling LoadCacheFromFile() ought to return the same
+  cache that s written out here.
   """
   # We don't want to overwrite the old contents of the cache until the entire
   # new version can be written. Consequently, we will write to a temporary file
-  # and then rename it to be CACHE_FILE itself.
-  out_file_name = "%s.tmp" % CACHE_FILE
-  out_file = open(out_file_name, "w")
+  # and then rename it to be filename itself.
+  out_filename = "%s.tmp" % filename
+  out_file = open(out_filename, "w")
   # pylru claims that iterating through the keys in the cache iterates from
   # most recently used to least recently used.
   for key in cache:
@@ -187,7 +187,7 @@ def StoreCacheToFile(cache):
   out_file.close()
   # Now that we're done successfully writing out the file, rename it to the
   # proper filename.
-  os.rename(out_file_name, CACHE_FILE)
+  os.rename(out_filename, filename)
 
 def CheckSubmissions(subreddit):
   """
@@ -198,7 +198,7 @@ def CheckSubmissions(subreddit):
   """
   modified_submissions = []
   needs_review_submissions = []
-  needs_review_cache = LoadCacheFromFile()
+  needs_review_cache = LoadCacheFromFile(CACHE_FILE)
 
   for rank, submission in enumerate(subreddit.get_hot(limit=200)):
     submission.rank = rank  # Used when creating digests for the mods
@@ -234,7 +234,7 @@ def CheckSubmissions(subreddit):
     modified_submissions.append(submission)
   if not DRY_RUN and not TEST_DATA:
     # Don't change the next run's cache if this is just a test
-    StoreCacheToFile(needs_review_cache)
+    StoreCacheToFile(needs_review_cache, CACHE_FILE)
   return modified_submissions, needs_review_submissions
 
 def MakeDigest(submissions, FormatSubmission, digest_template):
