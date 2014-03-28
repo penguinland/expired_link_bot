@@ -37,7 +37,6 @@ DRY_RUN = True  # Set to False to make actual changes
 USERNAME = "expired_link_bot"
 PASSWORD = ""  # Remember to put in the password when actually using this!
 
-ONE_HOUR_IN_SECONDS = 60 * 60
 NEEDS_REVIEW_CACHE_FILE = "needs_review_cache.txt"
 ALREADY_EXPIRED_CACHE_FILE = "already_expired_cache.txt"
 
