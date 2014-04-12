@@ -83,6 +83,8 @@ def GetPriceSelector(url):
   # uncommenting these lines.
   #if url.startswith("https://play.google.com/"):
   #  return r'<meta content="([^"]*)" itemprop="price">'
+  if url.startswith("http://bookshout.com"):
+    return r'<span>Our Price:</span>([^<]*)</p>'
   # Add other matches here
   return ""
 
