@@ -142,10 +142,9 @@ def IsKnownFree(url):
 def LoadCacheFromFile(filename):
   """
   This function returns a pylru.lrucache object containing (key, value) pairs.
-  The keys are strings containing the URLs of submissions which the bot can't
-  handle on its own but which have already been sent to the mods. The values are
-  just dummy values to be ignored. We try to read the file whose name is given
-  as an argument. If we can, we return a pylru.lrucache object containing its
+  The keys are strings containing the URLs of submissions. The values are just
+  dummy values to be ignored. We try to read the file whose name is given as an
+  argument. If we can, we return a pylru.lrucache object containing its
   contents, with the top line of the file being the most recently used entry
   and the last line of the file being the least recently used entry. If we
   cannot read the file, we return an empty pylru.lrucache object.  This function
@@ -174,11 +173,12 @@ def StoreCacheToFile(cache, filename):
   filename (which is a string), one line per entry. These entries will be
   sorted from most recently used (first line of the file) to least recently used
   (last line of the file). Calling LoadCacheFromFile() ought to return the same
-  cache that s written out here.
+  cache that is written out here.
   """
   # We don't want to overwrite the old contents of the cache until the entire
-  # new version can be written. Consequently, we will write to a temporary file
-  # and then rename it to be filename itself.
+  # new version can be written, in case this program is killed in the middle of
+  # writing it. Consequently, we will write to a temporary file and then rename
+  # it to be filename itself.
   tmp_filename = "%s.tmp" % filename
   tmp_file = open(tmp_filename, "w")
   # pylru claims that iterating through the keys in the cache iterates from
@@ -193,10 +193,10 @@ def StoreCacheToFile(cache, filename):
 
 def CheckSubmissions(subreddit):
   """
-  Given a subreddit, marks expired links and returns a list of the submissions
-  that were marked. It also returns a list of submissions we were unable to
-  process (either because we don't know how to find the price or because we
-  were unable to get the price).
+  Given a PRAW subreddit, marks expired links and returns a list of the
+  submissions that were marked. It also returns a list of submissions we were
+  unable to process (either because we don't know how to find the price or
+  because we were unable to get the price).
   """
   modified_submissions = []
   needs_review_submissions = []
