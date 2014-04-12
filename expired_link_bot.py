@@ -275,15 +275,21 @@ def RunIteration(r):
   modified_submissions, needs_review_submissions = CheckSubmissions(subreddit)
   # We no longer use the detailed digest of modified submissions, but I leave
   # it here in case we ever need it again.
-  #modified_digest = MakeDigest(
-  #    modified_submissions,
-  #    (lambda sub: "#%d: [%s](%s) (%s)" %
-  #                 (sub.rank, sub.title, sub.permalink, sub.list_price)),
-  #    u"Marked %d submission(s) as expired:\n\n%s")
-  modified_digest = ("Marked %d submission(s) as expired. See the "
-      "[moderation log]"
-      "(http://www.reddit.com/r/FreeEBOOKS/about/log/?mod=expired_link_bot) "
-      "for details." % len(modified_submissions))
+  if DRY_RUN:
+    # The list of things the bot would have expired is not in the moderation
+    # log because no changes were actually made. Instead, include the whole
+    # list in the digest.
+    modified_digest = MakeDigest(
+        modified_submissions,
+        (lambda sub: "#%d: [%s](%s) (%s)" %
+                     (sub.rank, sub.title, sub.permalink, sub.list_price)),
+        u"Marked %d submission(s) as expired:\n\n%s")
+  else:
+    # Just tell the mods to look at the mod log to see what was expired.
+    modified_digest = ("Marked %d submission(s) as expired. See the "
+        "[moderation log]"
+        "(http://www.reddit.com/r/FreeEBOOKS/about/log/?mod=expired_link_bot) "
+        "for details." % len(modified_submissions))
   needs_review_digest = MakeDigest(
       needs_review_submissions,
       (lambda sub: "#%d: ([direct link](%s)) [%s](%s)" %
