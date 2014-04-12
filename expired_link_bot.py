@@ -251,14 +251,18 @@ def MakeDigest(submissions, FormatSubmission, digest_template):
   - FormatSubmission is a functon that takes a submision and returns a string
     containing the relevant information.
   - digest_template is a string template that will be used to create the
-    digest. It must have places for the number of submissions and for a string
-    representation of the submissions.
+    digest. It must have places for the number of submissions, a plural on the
+    word "submission(s)", and for a string representation of the submissions.
   - We return a string containing the summary of these submissions, intended to
     be sent to the moderators.
   """
   formatted_submissions = [FormatSubmission(sub) for sub in submissions]
-  digest = (digest_template %
-            (len(formatted_submissions), "\n\n".join(formatted_submissions)))
+  if len(submissions) != 1:
+    plural = "s"
+  else:
+    plural = ""
+  summary = "\n\n".join(formatted_submissions)
+  digest = digest_template % (len(formatted_submissions), plural, summary)
   return digest
 
 def RunIteration(r):
@@ -283,18 +287,22 @@ def RunIteration(r):
         modified_submissions,
         (lambda sub: "#%d: [%s](%s) (%s)" %
                      (sub.rank, sub.title, sub.permalink, sub.list_price)),
-        u"Marked %d submission(s) as expired:\n\n%s")
+        u"Marked %d submission%s as expired:\n\n%s")
   else:
     # Just tell the mods to look at the mod log to see what was expired.
-    modified_digest = ("Marked %d submission(s) as expired. See the "
+    if len(modified_submissions) != 1:
+      plural = "s"
+    else:
+      plural = ""
+    modified_digest = ("Marked %d submission%s as expired. See the "
         "[moderation log]"
         "(http://www.reddit.com/r/FreeEBOOKS/about/log/?mod=expired_link_bot) "
-        "for details." % len(modified_submissions))
+        "for details." % (len(modified_submissions), plural))
   needs_review_digest = MakeDigest(
       needs_review_submissions,
       (lambda sub: "#%d: ([direct link](%s)) [%s](%s)" %
                    (sub.rank, sub.url, sub.title, sub.permalink)),
-      "Human review needed for %d new submission(s):\n\n%s")
+      "Human review needed for %d new submission%s:\n\n%s")
 
   if DRY_RUN or TEST_DATA:
     recipient = "penguinland"  # Send test digests only to me.
