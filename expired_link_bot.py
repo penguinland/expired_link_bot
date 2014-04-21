@@ -103,12 +103,12 @@ def GetPrice(url):
     # We sleep here to ensure that we send websites at most 1 qps.
     time.sleep(1)
 
-    # Get the contents of the webpage about this ebook. We use iri2uri to encode
-    # any stray unicode characters that might be in the URL (which web browsers
-    # can handle automatically, but which urllib2 doesn't know about).
-    request = urllib2.urlopen(httplib2.iri2uri(url))
+    # Recall that we've already passed the URL through iri2uri, so we don't
+    # need to do it here.
+    request = urllib2.urlopen(url)
     html = request.read()
-    # Remember to convert to unicode if the website uses some other encoding.
+    # Remember to convert to normal strings if the website uses some other
+    # encoding.
     encoding = request.info().typeheader
     encoding = encoding.split("charset=")[-1]
     html = html.decode(encoding)
@@ -206,6 +206,11 @@ def CheckSubmissions(subreddit):
 
   for rank, submission in enumerate(subreddit.get_hot(limit=200)):
     submission.rank = rank  # Used when creating digests for the mods
+    # Both urllib2.urlopen() and the file writer to save the cache have trouble
+    # when a submission's URL contains Unicode characters. Consequently, we
+    # encode any stray Unicode characters right away so we don't need to worry
+    # about it later.
+    submission.url = httplib2.iri2uri(submission.url)
 
     # Skip anything already marked as expired, unless it's test data.
     if (submission.link_flair_css_class == EXPIRED_CSS_CLASS or
