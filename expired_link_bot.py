@@ -37,6 +37,11 @@ DRY_RUN = True  # Set to False to make actual changes
 USERNAME = "expired_link_bot"
 PASSWORD = ""  # Remember to put in the password when actually using this!
 
+if DRY_RUN or TEST_DATA:
+  DIGEST_RECIPIENT = "penguinland"  # Send test digests only to me.
+else:
+  DIGEST_RECIPIENT = "/r/FreeEbooks"  # Send the real digest to the mods
+
 MAX_SUBMISSIONS = 200  # Number of submissions to examine; size of caches
 
 NEEDS_REVIEW_CACHE_FILE = "needs_review_cache.txt"
@@ -312,11 +317,7 @@ def RunIteration(r):
                    (sub.rank, sub.url, sub.title, sub.permalink)),
       "Human review needed for %d new submission%s:\n\n%s")
 
-  if DRY_RUN or TEST_DATA:
-    recipient = "penguinland"  # Send test digests only to me.
-  else:
-    recipient = "/r/FreeEbooks"  # Send the real digest to the mods
-  r.send_message(recipient, "Bot Digest",
+  r.send_message(DIGEST_RECIPIENT, "Bot Digest",
       modified_digest + "\n\n" + needs_review_digest)
 
 if __name__ == "__main__":
