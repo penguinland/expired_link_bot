@@ -37,6 +37,8 @@ DRY_RUN = True  # Set to False to make actual changes
 USERNAME = "expired_link_bot"
 PASSWORD = ""  # Remember to put in the password when actually using this!
 
+MAX_SUBMISSIONS = 200  # Number of submissions to examine; size of caches
+
 NEEDS_REVIEW_CACHE_FILE = "needs_review_cache.txt"
 ALREADY_EXPIRED_CACHE_FILE = "already_expired_cache.txt"
 
@@ -152,7 +154,7 @@ def LoadCacheFromFile(filename):
   should return a cache containing the same state as the cache last passed to
   StoreCacheToFile().
   """
-  cache = pylru.lrucache(100)  # Cache can store 100 submissions
+  cache = pylru.lrucache(MAX_SUBMISSIONS)
 
   try:
     f = open(filename)
@@ -204,7 +206,7 @@ def CheckSubmissions(subreddit):
   needs_review_cache = LoadCacheFromFile(NEEDS_REVIEW_CACHE_FILE)
   already_expired_cache = LoadCacheFromFile(ALREADY_EXPIRED_CACHE_FILE)
 
-  for rank, submission in enumerate(subreddit.get_hot(limit=200)):
+  for rank, submission in enumerate(subreddit.get_hot(limit=MAX_SUBMISSIONS)):
     submission.rank = rank  # Used when creating digests for the mods
     # Both urllib2.urlopen() and the file writer to save the cache have trouble
     # when a submission's URL contains Unicode characters. Consequently, we
