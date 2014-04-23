@@ -37,10 +37,7 @@ DRY_RUN = True  # Set to False to make actual changes
 USERNAME = "expired_link_bot"
 PASSWORD = ""  # Remember to put in the password when actually using this!
 
-if DRY_RUN or TEST_DATA:
-  DIGEST_RECIPIENT = "penguinland"  # Send test digests only to me.
-else:
-  DIGEST_RECIPIENT = "/r/FreeEbooks"  # Send the real digest to the mods
+DIGEST_RECIPIENT = "/r/FreeEbooks"  # Send the real digest to the mods
 
 MAX_SUBMISSIONS = 200  # Number of submissions to examine; size of caches
 
@@ -60,6 +57,39 @@ consequently has been marked as expired.
 I am a bot. If I have made a mistake, please [message the
 moderators](http://www.reddit.com/message/compose?to=/r/FreeEBOOKS&subject=expired_link_bot&message=%s).
 """
+
+HELP_MESSAGE = """The following command line arguments are supported:
+-h or --help         print this message
+-x or --makechanges  actually change flair and leave comments
+-t or --testdata     run over /r/Chtorrr instead of /r/FreeEbooks
+-p or --password     use the next argument as the password to log in
+-r or --recipient    send the digest to the name in the next argument
+
+Example: ./expired_link_bot -t -p "BotPassword123" -r "myusername" """
+
+def ProcessCommandLine():
+  global DRY_RUN, TEST_DATA, PASSWORD, DIGEST_RECIPIENT
+  argv = sys.argv[1:]
+  argv.reverse()
+  has_set_digest_recipient = False
+  while argv:
+    arg = argv.pop()
+    if arg == "-h" or arg == "--help":
+      print HELP_MESSAGE
+      sys.exit()
+    elif arg == "-x" or arg == "--makechanges":
+      DRY_RUN = False
+    elif arg == "-t" or arg == "--testdata":
+      TEST_DATA = True
+    elif arg == "-p" or arg == "--password":
+      PASSWORD = argv.pop()
+    elif arg == "-r" or arg == "--recipient":
+      DIGEST_RECIPIENT = argv.pop()
+      has_set_digest_recipient = True
+    else:
+      print "WARNING: unexpected command line argument; ignoring."
+  if (DRY_RUN or TEST_DATA) and not has_set_digest_recipient:
+    DIGEST_RECIPIENT = "penguinland"  # Send test digests only to me.
 
 def GetPriceSelector(url):
   """
@@ -321,6 +351,8 @@ def RunIteration(r):
       modified_digest + "\n\n" + needs_review_digest)
 
 if __name__ == "__main__":
+  ProcessCommandLine()
+
   # useragent string
   r = praw.Reddit("/r/FreeEbooks expired-link-marking bot "
                   "by /u/penguinland v. 2.1")
