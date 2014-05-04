@@ -359,7 +359,7 @@ if __name__ == "__main__":
 
   # useragent string
   r = praw.Reddit("/r/FreeEbooks expired-link-marking bot "
-                  "by /u/penguinland v. 2.1")
+                  "by /u/penguinland v. 2.2")
   r.login(USERNAME, PASSWORD)
 
   RunIteration(r)
