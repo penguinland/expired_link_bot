@@ -185,7 +185,7 @@ def LoadCacheFromFile(filename):
   argument. If we can, we return a pylru.lrucache object containing its
   contents, with the top line of the file being the most recently used entry
   and the last line of the file being the least recently used entry. If we
-  cannot read the file, we return an empty pylru.lrucache object.  This function
+  cannot read the file, we return an empty pylru.lrucache object. This function
   should return a cache containing the same state as the cache last passed to
   StoreCacheToFile().
   """
@@ -320,8 +320,6 @@ def RunIteration(r):
     subreddit = r.get_subreddit("freeebooks")
 
   modified_submissions, needs_review_submissions = CheckSubmissions(subreddit)
-  # We no longer use the detailed digest of modified submissions, but I leave
-  # it here in case we ever need it again.
   if DRY_RUN:
     # The list of things the bot would have expired is not in the moderation
     # log because no changes were actually made. Instead, include the whole
