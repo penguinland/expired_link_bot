@@ -41,13 +41,13 @@ HELP_MESSAGE = """The following command line arguments are supported:
 Example: ./expired_link_bot -t -p "BotPassword123" -r "myusername"
 """
 
-TEST_DATA = False  # Set to True to run over /r/chtorrr
-DRY_RUN = True  # Set to False to make actual changes
+TEST_DATA = False  # You can change this with the -t command flag.
+DRY_RUN = True  # You can change this with the -x command flag.
 
 USERNAME = "expired_link_bot"
-PASSWORD = ""  # Remember to put in the password when actually using this!
+PASSWORD = ""  # Remember to set the password with the -p command flag.
 
-DIGEST_RECIPIENT = "/r/FreeEbooks"  # Send the real digest to the mods
+DIGEST_RECIPIENT = "/r/FreeEbooks"  # You can change this with the -r flag.
 
 MAX_SUBMISSIONS = 200  # Number of submissions to examine; size of caches
 
@@ -71,6 +71,11 @@ moderators](http://www.reddit.com/message/compose?to=/r/FreeEBOOKS&subject=expir
 def ProcessCommandLine():
   global DRY_RUN, TEST_DATA, PASSWORD, DIGEST_RECIPIENT
   argv = sys.argv[1:]
+  if len(argv) == 0:
+    # This program probably shouldn't be run without any arguments. Print the
+    # help message and exit.
+    print HELP_MESSAGE
+    sys.exit()
   argv.reverse()
   has_set_digest_recipient = False
   while argv:
