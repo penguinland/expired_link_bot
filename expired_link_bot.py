@@ -31,6 +31,16 @@ import sys
 import time
 import urllib2
 
+HELP_MESSAGE = """The following command line arguments are supported:
+-h or --help         print this message
+-x or --makechanges  actually change flair and leave comments
+-t or --testdata     run over /r/Chtorrr instead of /r/FreeEbooks
+-p or --password     use the next argument as the password to log in
+-r or --recipient    send the digest to the name in the next argument
+
+Example: ./expired_link_bot -t -p "BotPassword123" -r "myusername"
+"""
+
 TEST_DATA = False  # Set to True to run over /r/chtorrr
 DRY_RUN = True  # Set to False to make actual changes
 
@@ -57,15 +67,6 @@ consequently has been marked as expired.
 I am a bot. If I have made a mistake, please [message the
 moderators](http://www.reddit.com/message/compose?to=/r/FreeEBOOKS&subject=expired_link_bot&message=%s).
 """
-
-HELP_MESSAGE = """The following command line arguments are supported:
--h or --help         print this message
--x or --makechanges  actually change flair and leave comments
--t or --testdata     run over /r/Chtorrr instead of /r/FreeEbooks
--p or --password     use the next argument as the password to log in
--r or --recipient    send the digest to the name in the next argument
-
-Example: ./expired_link_bot -t -p "BotPassword123" -r "myusername" """
 
 def ProcessCommandLine():
   global DRY_RUN, TEST_DATA, PASSWORD, DIGEST_RECIPIENT
