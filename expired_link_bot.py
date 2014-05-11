@@ -119,7 +119,11 @@ def GetPriceSelector(url):
     return r'\s+class="priceLarge"\s*>([^<]*)<'
   if url.startswith(("http://www.smashwords.com/",
                      "https://www.smashwords.com/")):
-    return r'class="panel-title text-center">\s*Price:([^<]*)<'
+    # If the price is listed, it follows a "Price:" but if the price is "You
+    # set the price!" then it is not. Do not use parentheses to group the
+    # "Price:" together, as that will put the price itself in the wrong group
+    # when the regex matches.
+    return r'class="panel-title text-center">\s*P?r?i?c?e?:?([^<]*)<'
   if url.startswith("http://www.barnesandnoble.com/"):
     return r'itemprop="price" data-bntrack="Price" data-bntrack-event="click">([^<]*)<'
   # Although Google Play links work fine from my home computer, this webserver
