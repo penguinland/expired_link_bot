@@ -109,10 +109,13 @@ def GetPriceSelector(url):
   if url.startswith("http://www.amazon.com/gp/aw/d/"):
     return r'<b>Price:</b>&nbsp;([^&]*)&nbsp;<br />'
   if url.startswith(("http://www.amazon.com/",
+                     "https://www.amazon.com/",
                      "http://amzn.com/",
+                     "https://amzn.com/",
                      "http://www.amazon.co.uk/",
                      "https://www.amazon.co.uk/",
-                     "http://www.amazon.ca/")):
+                     "http://www.amazon.ca/",
+                     "https://www.amazon.ca/")):
     return r'\s+class="priceLarge"\s*>([^<]*)<'
   if url.startswith(("http://www.smashwords.com/",
                      "https://www.smashwords.com/")):
