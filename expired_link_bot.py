@@ -191,8 +191,15 @@ def CheckSubmissions(subreddit):
     if not any(digit in price for digit in "123456789"):
       continue  # It's still free!
 
-    # If we get here, this submission is no longer free. Make a comment
-    # explaining this and set the flair to expired.
+    # If we get here, this submission is no longer free.
+    if ("coupon" in submission.title.lower() or
+        "code" in submission.title.lower()):
+      # Although this submission doesn't appear to be free, flag for human
+      # review in case it's still free with the coupon code.
+      if submission.url not in needs_review_cache:
+        needs_review_submissions.append(submission)
+      needs_review_cache[submission.url] = True
+      continue
     if not DRY_RUN:
       submission.add_comment(EXPIRED_MESSAGE % (price, submission.permalink))
       subreddit.set_flair(submission, EXPIRED_FLAIR, EXPIRED_CSS_CLASS)
